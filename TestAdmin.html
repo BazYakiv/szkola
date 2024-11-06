@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Nauczyciela</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+      
+        .HeaderBox {
+            background-color: #002B5B;
+            height: 5%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 0 4px 2px -2px gray;
+        }
+
+        .HeaderText {
+            font-size: 45px;
+            padding: 20px;
+            font-weight: 200;
+            color: white;
+            margin-left: auto;
+        }
+
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events:none;
+        }
+
+        .loader.show {
+            opacity: 1;
+            pointer-events:auto;
+        }
+
+        .loader::after {
+            content: '';
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            pointer-events:none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .HeaderBox button {
+            font-size: 18px;
+            width: 4%;
+            height: 100%;
+            border: none;
+            cursor: pointer;
+            background-color: #005b96;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            color: white;
+            transition: background-color 0.3s;
+            overflow: hidden;
+            margin-left: 5px;
+        }
+
+        .HeaderBox button:hover {
+            background-color: #003f72;
+        }
+
+        .HeaderImages {
+            width: 35px;
+            padding: 10px;
+            color: white;
+        }
+
+        
+        #Main {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 5%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+      
+        #Box,
+        #Box2 {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 45%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input,
+        select {
+            width: 98%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #c0c0c0;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #005b96;
+        }
+
+        button {
+            width: 102%;
+            padding: 10px;
+            background-color: #005b96;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #003f72;
+        }
+
+       
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #e9f0f8;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #c0c0c0;
+        }
+
+        th {
+            background-color: #002B5B;
+            color: white;
+        }
+
+        #React {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader" class="loader"></div>
+
+    <div class="HeaderBox">
+        <button id="Return"><img src="IMGS/group.png" class="HeaderImages"></button>
+        <button id="Exit"><img src="IMGS/logout.png" class="HeaderImages"></button>
+        <span class="HeaderText">Panel</span>
+
+    </div>
+
+    <div id="Main">
+        <div id="Box">
+            <label for="pytanie">Napisz Pytanie:</label>
+            <input id="pytanie" type="text">
+            <br>
+            <label for="A">A:</label>
+            <input id="A" type="text">
+            <br>
+            <label for="B">B:</label>
+            <input id="B" type="text">
+            <br>
+            <label for="C">C:</label>
+            <input id="C" type="text">
+            <br>
+            <label for="Selector">Prawidłowa Odpowiedź:</label>
+            <select id="Selector">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+            </select>
+            <label for="PhotoInput">Zdjęcie (URL):</label>
+            <input id="PhotoInput" type="url" >
+            <button id="SendButton">Wyślij</button>
+            <p id="React"></p>
+        </div>
+
+        <div id="Box2">
+            <label for="pytanie2">Usuń Pytanie:</label>
+            <input id="pytanie2" type="text">
+            <button id="DeleteButton">Usuń</button>
+        </div>
+    </div>
+
+    <div id="TableBox">
+        <h3>Lista Pytań</h3>
+        <table id="TableMain">
+            <thead>
+                <tr>
+                    <th>Pytanie</th>
+                    <th>A</th>
+                    <th>B</th>
+                    <th>C</th>
+                    <th>Prawidłowa</th>
+                </tr>
+            </thead>
+            <tbody id="Table"></tbody>
+        </table>
+    </div>
+
+    <div id="TableBox2">
+        <h3>Wyniki Uczniów</h3>
+        <table id="TableMain2">
+            <thead>
+                <tr>
+                    <th>Imię</th>
+                    <th>Nazwisko</th>
+                    <th>Klasa</th>
+                    <th>Zaliczono</th>
+                    <th>Ilość Pytań</th>
+                    <th>Czas</th>
+                </tr>
+            </thead>
+            <tbody id="Table2"></tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js';
+        import { collection, addDoc, where, query, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js';
+        import { getStorage, ref } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-storage.js';    
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+    apiKey: "AIzaSyDu4XoqfAe7yA3s3F3OSmkxJ6KnTBSZ-YU",
+    authDomain: "school3-692db.firebaseapp.com",
+    projectId: "school3-692db",
+    storageBucket: "school3-692db.appspot.com",
+    messagingSenderId: "897722999548",
+    appId: "1:897722999548:web:a62f58e5511e02b3b4ad79",
+    measurementId: "G-X7K7V2ZFFE"
+  };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        async function addData(Question, A, B, C, RightOption, imgURL) {
+            try {
+                const colRef = collection(db, 'Questions');
+                const docData = {
+                    Question: Question,
+                    A: A,
+                    B: B,
+                    C: C,
+                    RightOption: RightOption,
+                    URL: imgURL,
+                };
+
+                const docRef = await addDoc(colRef, docData);
+
+                console.log("Udany Zapis!: ", docRef.id);
+
+            } catch (error) {
+                console.error("Nie Udany: ", error);
+            }
+        }
+        async function DeleteData(Question) {
+            try {
+                const colref = collection(db, 'Questions')
+                const q = query(colref, where("Question", "==", Question))
+                const qsnap = await getDocs(q)
+                qsnap.forEach(async (doc) => {
+                    await deleteDoc(doc.ref)
+                })
+
+            } catch (error) {
+                console.log('fail')
+                console.log(error)
+            }
+        }
+        async function QuestionExists(Question) {
+            const users = collection(db, 'Questions');
+            const q = query(users, where("Question", "==", Question))
+
+            const qSnap = await getDocs(q)
+            return qSnap.empty
+        }
+
+        const quest = document.getElementById('pytanie')
+        const AOption = document.getElementById('A')
+        const BOption = document.getElementById('B')
+        const COption = document.getElementById('C')
+        const Right = document.getElementById('Selector')
+        const PhotoInput = document.getElementById('PhotoInput')
+        const QuestDelete = document.getElementById('pytanie2')
+
+        const SendButton = document.getElementById('SendButton')
+        const DeleteButton = document.getElementById('DeleteButton')
+        const ReturnButton = document.getElementById('Return')
+        const ExitButton = document.getElementById('Exit')
+        const Reaction = document.getElementById('React')
+        const table = document.getElementById('Table')
+        const table2 = document.getElementById('Table2')
+        async function TableList() {
+            try {
+
+                const UserDocs = await getDocs(collection(db, 'Questions'));
+
+                UserDocs.forEach((doc) => {
+                    const UserData = doc.data();
+                    var newRow = table.insertRow(-1);
+                    var QuestionCell = newRow.insertCell(0);
+                    var ACell = newRow.insertCell(1);
+                    var BCell = newRow.insertCell(2);
+                    var CCell = newRow.insertCell(3);
+                    var RightCell = newRow.insertCell(4);
+
+                    QuestionCell.innerHTML = UserData.Question;
+                    ACell.innerHTML = UserData.A;
+                    BCell.innerHTML = UserData.B;
+                    CCell.innerHTML = UserData.C;
+                    RightCell.innerHTML = UserData.RightOption;
+                });
+
+
+            } catch (error) {
+                console.log('Fail')
+            }
+        }
+        SendButton.addEventListener('click', async (event) => {
+            if (quest.value && AOption.value && BOption.value && COption.value && Right.value) {
+                const isNotTaken = await QuestionExists(quest.value)
+                if (isNotTaken) {
+                    addData(quest.value, AOption.value, BOption.value, COption.value, Right.value, PhotoInput.value)
+                    Reaction.style = 'color:green;'
+                    Reaction.innerHTML = 'Wyslane!'
+                    quest.value = ''
+                    AOption.value = ''
+                    BOption.value = ''
+                    COption.value = ''
+                    PhotoInput.value = ''
+                    table.innerHTML = ''
+                    if (table.innerHTML == '') {
+                        TableList()
+                    }
+
+                } else {
+                    Reaction.style = 'color:red;'
+                    Reaction.innerHTML = 'Pytanie Istnieje!'
+                }
+
+
+            } else {
+                Reaction.style = 'color:red;'
+                Reaction.innerHTML = 'Wypelnij wszystko.'
+            }
+
+        })
+        DeleteButton.addEventListener('click', async (event) => {
+            if (QuestDelete.value) {
+                DeleteData(QuestDelete.value)
+                table.innerHTML = ''
+                if (table.innerHTML == '') {
+                    TableList()
+                }
+            }
+        })
+        ReturnButton.addEventListener('click', (event) => {
+            window.location = 'Generator.html'
+        })
+        ExitButton.addEventListener('click', (event) => {
+            window.location = 'Login.html'
+        })
+        async function AnswerTableList() {
+            const UserDocs = await getDocs(collection(db, 'Students'));
+            UserDocs.forEach((doc) => {
+                const UserData = doc.data();
+                var newRow = table2.insertRow(-1);
+                var NameCell = newRow.insertCell(0);
+                var SurnameCell = newRow.insertCell(1);
+                var KlasaCell = newRow.insertCell(2);
+                var Grade = newRow.insertCell(3);
+                var OutOf = newRow.insertCell(4);
+                var Time = newRow.insertCell(5);
+                NameCell.innerHTML = UserData.Name;
+                SurnameCell.innerHTML = UserData.Surname;
+                KlasaCell.innerHTML = UserData.Class;
+                Grade.innerHTML = UserData.Amount;
+                OutOf.innerHTML = UserData.OutOf;
+                Time.innerHTML = UserData.Time;
+            });
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const loader = document.getElementById('loader');
+            loader.classList.add('show');
+            setTimeout(() => {
+                loader.classList.remove('show');
+            }, 400);
+        });
+        window.onload = function () {
+            TableList()
+            AnswerTableList()
+        }
+    </script>
+
+</body>
+
+</html>
