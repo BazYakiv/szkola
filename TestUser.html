@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uczeń Test</title>
+    <style>
+        /* Existing CSS styles */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .loader.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .loader::after {
+            content: '';
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #Header {
+            width: 100%;
+            background-color: #002B5B;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        #Header h1 {
+            margin: 0;
+            color: white;
+            font-size: 24px;
+        }
+
+        #Header label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 100;
+            color: #fff;
+        }
+
+        #TestBox {
+            background-color: white;
+            width: 80%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .Inputs {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+        .Inputs:focus {
+            outline: none;
+            border-color: #005b96;
+        }
+
+        #Start,
+        #DisableButton,
+        #NextButton {
+            background-color: #005b96;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        #Start:hover,
+        #DisableButton:hover,
+        #NextButton:hover {
+            background-color: #003f72;
+        }
+        #Start:disabled,
+        #DisableButton:disabled,
+        #NextButton:disabled {
+            background-color: #1b1b1b;
+        }
+
+        #textReact {
+            margin-top: 20px;
+            font-weight: bold;
+            color: green;
+        }
+
+        #Timer {
+            color: white;
+            position: absolute;
+            font-size: 40px;
+            font-weight: 100;
+            left: 40px;
+            bottom: 855px;
+        }
+        #React {
+            color: white;
+            position: absolute;
+            font-size: 40px;
+            font-weight: 100;
+            left: 140px;
+            bottom: 855px;
+        }
+
+        #Return {
+            background-color: #005b96;
+            border-radius: 5px;
+            border: 0;
+            padding: 10px 20px;
+            width: 20%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            overflow: hidden;
+        }
+
+        .image {
+            width: 20px;
+            padding: 10px;
+        }
+
+        #Return:hover {
+            background-color: #003f72;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="loader" class="loader"></div>
+
+    <div id="Header">
+        <h1>Witam do testu!</h1>
+    </div>
+
+    <div id="TestBox">
+        <div>
+            <label for="Name">Imię:</label>
+            <input id="Name" class="Inputs" type="text">
+            <label for="Surname">Nazwisko:</label>
+            <input id="Surname" class="Inputs" type="text">
+            <label for="class">Klasa:</label>
+            <select class="Inputs" id="class">
+                <option value="1TP">1TP</option>
+                <option value="2TP">2TP</option>
+                <option value="3TP">3TP</option>
+                <option value="4TP">4TP</option>
+                <option value="5TP">5TP</option>
+            </select>
+            <button id="Start">Zacznij</button>
+        </div>
+        <form id="Form">
+            <button id="DisableButton" disabled>Zakończ</button>
+            <button id="NextButton" disabled>Next</button>
+            <h2 id="textReact"></h2>
+        </form>
+    </div>
+
+    <h2 id="Timer">0:0:0</h2>
+    <h2 id="React"></h2>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js";
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js';
+        import { collection, addDoc, where, query, getDocs } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDu4XoqfAe7yA3s3F3OSmkxJ6KnTBSZ-YU",
+            authDomain: "school3-692db.firebaseapp.com",
+            projectId: "school3-692db",
+            storageBucket: "school3-692db.appspot.com",
+            messagingSenderId: "897722999548",
+            appId: "1:897722999548:web:a62f58e5511e02b3b4ad79",
+            measurementId: "G-X7K7V2ZFFE"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        let Questions = []
+        const testForm = document.getElementById('Form')
+        const StartBut = document.getElementById('Start')
+        const EndBut = document.getElementById('DisableButton')
+        const NextBut = document.getElementById('NextButton')
+        const Name = document.getElementById('Name')
+        const Surname = document.getElementById('Surname')
+        const Class = document.getElementById('class')
+        const textReact = document.getElementById('textReact')
+        const React2 = document.getElementById('React')
+        const Timer = document.getElementById('Timer')
+        var time
+        var currentQuestionIndex = 0;
+
+        async function getQ() {
+            const colRef = collection(db, "Questions");
+            const snap = await getDocs(colRef);
+
+            snap.forEach((doc) => {
+                const data = doc.data();
+                const info = {
+                    question: data.Question,
+                    correctOption: data.RightOption,
+                    imgURL: data.URL,
+                    options: [
+                        { key: 'A', value: data.A },
+                        { key: 'B', value: data.B },
+                        { key: 'C', value: data.C }
+                    ]
+                };
+                Questions.push(info);
+            });
+
+            Questions = randomArray(Questions);
+            displayQuestion(currentQuestionIndex);
+        }
+
+        function randomArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function displayQuestion(index) {
+            const questionDiv = document.createElement('div');
+            questionDiv.innerHTML = `<h1 id="label${index}">Pytanie ${index + 1}: ${Questions[index].question}:</h1>`;
+
+            const imageUrl = Questions[index].imgURL;
+            if (imageUrl) {
+                questionDiv.innerHTML += `<img src="${imageUrl}" alt="Question image" style="max-width: 40%; height: auto;"><br>`;
+            }
+
+            Questions[index].options.forEach(option => {
+                questionDiv.innerHTML += `
+                <label>
+                    <input type="radio" name="question${index}" value="${option.key}" required>
+                    ${option.key}: ${option.value}
+                </label><br>`;
+            });
+
+            testForm.insertBefore(questionDiv, EndBut);
+        }
+
+        function checkAnswers() {
+            let amount = 0;
+            Questions.forEach((quest, indx) => {
+                const seloption = document.querySelector(`input[name="question${indx}"]:checked`);
+                const label = document.getElementById(`label${indx}`);
+                if (seloption) {
+                    const answer = seloption.value;
+                    if (answer === quest.correctOption) {
+                        amount++;
+                        label.style.color = "green";
+                    } else {
+                        label.style.color = "red";
+                    }
+                }
+            });
+            Display(amount);
+            return amount;
+        }
+
+        function Display(amount) {
+            const total = Questions.length;
+            textReact.innerHTML = `Zaliczono ${amount} z ${total}.
+            <br><button type="button" id="Return" onclick="window.location = 'index.html'"><img class="image" src="IMGS/back.png"></button>`;
+            textReact.style.color = 'green';
+        }
+
+        window.onload = getQ;
+
+        async function CheckIfUser(Name, Surname) {
+            const users = collection(db, 'Students');
+            const q = query(users,
+                where("Name", "==", Name),
+                where("Surname", "==", Surname)
+            );
+
+            const qSnap = await getDocs(q);
+            return qSnap.empty;
+        }
+
+        async function addData(Amount, OutOf, Name2, Surname2, Class2, Time2) {
+            try {
+                const colRef = collection(db, 'Students');
+                const docData = {
+                    Name: Name2,
+                    Surname: Surname2,
+                    Class: Class2,
+                    Amount: Amount,
+                    OutOf: OutOf,
+                    Time: Time2,
+                };
+
+                const docRef = await addDoc(colRef, docData);
+                console.log("Udany Zapis!: ", docRef.id);
+            } catch (error) {
+                console.error("Nie Udany: ", error);
+            }
+        }
+
+        function StartTimer() {
+            let seconds = 0;
+            let minutes = 0;
+            let hours = 0;
+            time = setInterval(function () {
+                seconds++;
+                if (seconds > 60) {
+                    seconds = 0;
+                    minutes++;
+                }
+                if (minutes > 60) {
+                    minutes = 0;
+                    hours++;
+                }
+                Timer.innerHTML = `${hours}:${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        StartBut.addEventListener('click', async (event) => {
+            if (Name.value && Surname.value && Class.value) {
+                const doesNotExist = await CheckIfUser(Name.value, Surname.value);
+                if (doesNotExist) {
+                    const radios = document.querySelectorAll('input[type="radio"]');
+                    const Inputs = document.querySelectorAll('input[class="Inputs"]');
+                    radios.forEach(radio => radio.disabled = false);
+                    Inputs.forEach(input => input.disabled = true);
+                    Class.disabled = true;
+                    EndBut.disabled = false;
+                    NextBut.disabled = false; 
+                    StartBut.disabled = true;
+                    React.innerHTML = '';
+                    StartTimer();
+                } else {
+                    React.innerHTML = 'Ośoba już pisala.';
+                    React.style.color = "red";
+                }
+            }
+        });
+
+        EndBut.addEventListener('click', (event) => {
+            event.preventDefault();
+            clearInterval(time);
+            const amount = checkAnswers();
+            addData(amount, Questions.length, Name.value, Surname.value, Class.value, Timer.innerHTML);
+            EndBut.disabled = true;
+        });
+
+        NextBut.addEventListener('click', (event) => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < Questions.length) {
+                const questionDivs = testForm.querySelectorAll('div');
+                questionDivs[0].style = 'display: none;'
+                displayQuestion(currentQuestionIndex);
+            } else {
+                EndBut.disabled = false;
+                NextBut.disabled = true; 
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const loader = document.getElementById('loader');
+            loader.classList.add('show');
+
+            setTimeout(() => {
+                loader.classList.remove('show');
+            }, 1000);
+        });
+    </script>
+</body>
+
+</html>

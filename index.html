@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 40px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-150%);
+            transition: transform 0.9s ease;
+        }
+
+        .container.show {
+            transform: translateY(0);
+            
+        }
+
+        .container img {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #333;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .loader.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .loader::after {
+            content: '';
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            outline: none;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        input:focus {
+            background-color: #fff;
+            border-color: #007bff;
+        }
+
+        .button {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .reaction-text {
+            margin-top: 20px;
+            font-size: 18px;
+            font-style: italic;
+            color: #333;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader" class="loader"></div>
+    <div class="container">
+        <img src="IMGS/EnterIcon.png" alt="Login Icon">
+        <h1>Logowanie</h1>
+
+        <div class="input-group">
+            <label for="login">Login:</label>
+            <input id="Login" placeholder="Login">
+        </div>
+
+        <div class="input-group">
+            <label for="password">Hasło:</label>
+            <input id="Password" type="password" placeholder="Hasło">
+        </div>
+
+        <button id="Check" class="button">Zaloguj się</button>
+
+        <p class="reaction-text" id="Reaction"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js";
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js';
+        import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+    apiKey: "AIzaSyDu4XoqfAe7yA3s3F3OSmkxJ6KnTBSZ-YU",
+    authDomain: "school3-692db.firebaseapp.com",
+    projectId: "school3-692db",
+    storageBucket: "school3-692db.appspot.com",
+    messagingSenderId: "897722999548",
+    appId: "1:897722999548:web:a62f58e5511e02b3b4ad79",
+    measurementId: "G-X7K7V2ZFFE"
+  };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        const CheckButton = document.getElementById('Check');
+        const Login = document.getElementById('Login');
+        const Pass = document.getElementById('Password');
+        const ReactionText = document.getElementById('Reaction');
+
+        async function UserExists(Name, Password) {
+            const users = collection(db, 'Names');
+            const q = query(users, where("Login", "==", Name), where("Password", "==", Password));
+            const qSnap = await getDocs(q);
+            return !qSnap.empty;
+        }
+
+        async function isAdmin(Nickname) {
+            const users = collection(db, 'Names');
+            const q = query(users, where("Login", "==", Nickname), where("Role", "==", "Nauczyciel"));
+            const qsnap2 = await getDocs(q);
+            return !qsnap2.empty;
+        }
+
+        CheckButton.addEventListener('click', async () => {
+            if (Login.value) {
+                const confirmation = await UserExists(Login.value, Pass.value);
+                const administrator = await isAdmin(Login.value);
+
+                if (confirmation) {
+                    ReactionText.innerHTML = "Udane Logowanie";
+                    ReactionText.style.color = "green";
+                    ReactionText.style.display = "block";
+
+                    if (administrator) {
+                        window.location.href = 'TestAdmin.html';
+                    } else {
+                        window.location.href = 'TestUser.html';
+                    }
+                } else {
+                    ReactionText.innerHTML = "Hasło lub login jest nieprawidłowy";
+                    ReactionText.style.color = "red";
+                    ReactionText.style.display = "block";
+                }
+            }
+        });
+        document.addEventListener("DOMContentLoaded", function () {
+            const loader = document.getElementById('loader');
+            const container = document.querySelector('.container');
+            loader.classList.add('show');
+            setTimeout(() => {
+                loader.classList.remove('show');
+                container.classList.add('show');
+            }, 180);
+        });
+    </script>
+</body>
+
+</html>
